@@ -7,7 +7,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const clearListBtn = document.getElementById('clear-list-btn');
     const totalPrice = document.getElementById('total-price');
     const dateInput = document.getElementById('date');
+    const productInput = document.getElementById('product');
     let items = JSON.parse(localStorage.getItem('shoppingList')) || [];
+    let exportCounter = parseInt(localStorage.getItem('exportCounter')) || 0;
 
     // Definir data atual
     const today = new Date().toISOString().split('T')[0];
@@ -25,17 +27,18 @@ document.addEventListener('DOMContentLoaded', () => {
         list.innerHTML = '';
         let total = 0;
         items.forEach((item, index) => {
+            const itemTotal = (parseFloat(item.price) * item.quantity).toFixed(2);
             const li = document.createElement('li');
             li.classList.add('list-item');
             li.innerHTML = `
-                <span><i class="fas fa-shopping-basket"></i> ${item.product} - R$${parseFloat(item.price).toFixed(2)} - ${item.supermarket} - ${item.date}</span>
+                <span><i class="fas fa-shopping-basket"></i> ${item.product} (${item.quantity}x) - R$${itemTotal} - ${item.supermarket} - ${item.date}</span>
                 <div>
                     <button class="edit-btn" onclick="editItem(${index})"><i class="fas fa-edit"></i> Editar</button>
                     <button class="delete-btn" onclick="deleteItem(${index})"><i class="fas fa-trash"></i> Excluir</button>
                 </div>
             `;
             list.appendChild(li);
-            total += parseFloat(item.price || 0);
+            total += parseFloat(itemTotal);
         });
         totalPrice.textContent = `Total: R$${total.toFixed(2)}`;
         localStorage.setItem('shoppingList', JSON.stringify(items));
@@ -45,27 +48,32 @@ document.addEventListener('DOMContentLoaded', () => {
     form.addEventListener('submit', (e) => {
         e.preventDefault();
         const product = document.getElementById('product').value;
+        const quantity = parseInt(document.getElementById('quantity').value);
         const price = parseFloat(document.getElementById('price').value).toFixed(2);
         const supermarket = document.getElementById('supermarket').value;
         const date = document.getElementById('date').value;
-        const item = { product, price, supermarket, date };
+        const item = { product, quantity, price, supermarket, date };
         console.log('Adicionando item:', item); // Log para depuração
         items.push(item);
         form.reset();
+        document.getElementById('quantity').value = '1';
         document.getElementById('price').value = '0.00';
         document.getElementById('date').value = today;
         renderList();
+        productInput.focus(); // Retorna o foco ao campo de produto
     });
 
     // Editar item
     window.editItem = (index) => {
         const item = items[index];
         document.getElementById('product').value = item.product;
+        document.getElementById('quantity').value = item.quantity;
         document.getElementById('price').value = item.price;
         document.getElementById('supermarket').value = item.supermarket;
         document.getElementById('date').value = item.date;
         items.splice(index, 1); // Remove item para edição
         renderList();
+        productInput.focus(); // Retorna o foco ao campo de produto
     };
 
     // Excluir item
@@ -98,15 +106,16 @@ document.addEventListener('DOMContentLoaded', () => {
             : '<i class="fas fa-moon"></i> Alternar Tema';
     });
 
-    // Exportar lista com data no nome do arquivo
+    // Exportar lista com numeração sequencial
     exportBtn.addEventListener('click', () => {
-        const date = new Date().toISOString().split('T')[0]; // Ex.: 2025-08-06
+        exportCounter++;
+        localStorage.setItem('exportCounter', exportCounter);
         const dataStr = JSON.stringify(items);
         const blob = new Blob([dataStr], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `lista_compras_${date}.json`;
+        a.download = `Lista${exportCounter}.json`;
         a.click();
         URL.revokeObjectURL(url);
         console.log('Lista exportada:', items); // Log para depuração
