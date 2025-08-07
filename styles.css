@@ -53,6 +53,10 @@ h1 {
     min-width: 100px;
 }
 
+#item-form input[type="number"] {
+    max-width: 150px; /* Limita largura do campo de quantidade e preço */
+}
+
 #item-form button {
     padding: 8px;
     background-color: #28a745;
@@ -118,7 +122,7 @@ body.dark .list-item {
 }
 
 .list-item button {
-    padding: 5px 10px;
+    padding fivepx 10px;
     margin-left: 5px;
     border: none;
     border-radius: 4px;
