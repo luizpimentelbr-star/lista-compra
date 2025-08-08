@@ -6,14 +6,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const importFile = document.getElementById('import-file');
     const clearListBtn = document.getElementById('clear-list-btn');
     const scanBtn = document.getElementById('scan-btn');
+    const cancelScanBtn = document.getElementById('cancel-scan-btn');
     const totalPrice = document.getElementById('total-price');
     const itemCount = document.getElementById('item-count');
     const dateInput = document.getElementById('date');
     const productInput = document.getElementById('product');
+    const scannerContainer = document.getElementById('scanner-container');
     const video = document.getElementById('scanner-video');
     let items = JSON.parse(localStorage.getItem('shoppingList')) || [];
     let exportCounter = parseInt(localStorage.getItem('exportCounter')) || 0;
     let stream = null;
+    let scanning = false;
 
     // Definir data atual
     const today = new Date().toISOString().split('T')[0];
@@ -45,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
             total += parseFloat(itemTotal);
         });
         totalPrice.textContent = `Total: R$${total.toFixed(2)}`;
-        itemCount.textContent = `Itens: ${items.length}`; // Exibir contagem de itens
+        itemCount.textContent = `Itens: ${items.length}`;
         localStorage.setItem('shoppingList', JSON.stringify(items));
     }
 
@@ -145,69 +148,91 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Função para parar o escaneamento
+    function stopScanning() {
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+            stream = null;
+        }
+        scannerContainer.style.display = 'none';
+        video.srcObject = null;
+        scanning = false;
+        productInput.focus();
+    }
+
     // Escanear código de barras
     scanBtn.addEventListener('click', async () => {
+        if (scanning) return;
+        scanning = true;
+        scannerContainer.style.display = 'flex';
+
         if ('BarcodeDetector' in window) {
             // Usar Barcode Detection API
             const barcodeDetector = new BarcodeDetector({ formats: ['ean_13', 'upc_a', 'qr_code', 'code_128'] });
             try {
                 stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
                 video.srcObject = stream;
-                video.style.display = 'block';
                 video.play();
 
                 const scan = async () => {
+                    if (!scanning) return;
                     const canvas = document.getElementById('scanner-canvas');
                     const ctx = canvas.getContext('2d');
                     canvas.width = video.videoWidth;
                     canvas.height = video.videoHeight;
                     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                    const barcodes = await barcodeDetector.detect(canvas);
-                    if (barcodes.length > 0) {
-                        productInput.value = barcodes[0].rawValue;
-                        video.srcObject = null;
-                        stream.getTracks().forEach(track => track.stop());
-                        video.style.display = 'none';
-                        productInput.focus();
-                    } else {
+                    try {
+                        const barcodes = await barcodeDetector.detect(canvas);
+                        if (barcodes.length > 0) {
+                            productInput.value = barcodes[0].rawValue;
+                            stopScanning();
+                        } else {
+                            requestAnimationFrame(scan);
+                        }
+                    } catch (error) {
+                        console.error('Erro ao detectar código de barras:', error);
                         requestAnimationFrame(scan);
                     }
                 };
                 requestAnimationFrame(scan);
             } catch (error) {
                 console.error('Erro ao acessar a câmera:', error);
-                alert('Erro ao acessar a câmera. Verifique as permissões.');
+                alert('Erro ao acessar a câmera. Verifique as permissões ou use Chrome/Edge.');
+                stopScanning();
             }
         } else {
             // Fallback para ZXing
             const codeReader = new ZXing.BrowserMultiFormatReader();
             try {
-                const result = await codeReader.decodeFromVideoDevice(null, 'scanner-video', (result, err) => {
-                    if (result) {
+                codeReader.decodeFromVideoDevice(null, 'scanner-video', (result, err) => {
+                    if (result && scanning) {
                         productInput.value = result.getText();
                         codeReader.reset();
-                        video.style.display = 'none';
-                        productInput.focus();
+                        stopScanning();
                     }
-                    if (err) {
+                    if (err && scanning) {
                         console.error('Erro ao escanear com ZXing:', err);
                     }
                 });
-                video.style.display = 'block';
             } catch (error) {
                 console.error('Erro ao acessar a câmera com ZXing:', error);
-                alert('Erro ao acessar a câmera com ZXing. Verifique as permissões.');
+                alert('Erro ao acessar a câmera com ZXing. Verifique as permissões ou use Chrome/Edge.');
+                stopScanning();
             }
         }
     });
 
+    // Cancelar escaneamento
+    cancelScanBtn.addEventListener('click', () => {
+        stopScanning();
+    });
+
     // Parar a câmera ao fechar a página
     window.addEventListener('beforeunload', () => {
-        if (stream) {
-            stream.getTracks().forEach(track => track.stop());
-        }
+        stopScanning();
     });
 
     // Inicializar lista
     renderList();
 });
+
