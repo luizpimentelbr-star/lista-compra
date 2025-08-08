@@ -5,11 +5,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const exportBtn = document.getElementById('export-btn');
     const importFile = document.getElementById('import-file');
     const clearListBtn = document.getElementById('clear-list-btn');
+    const scanBtn = document.getElementById('scan-btn');
     const totalPrice = document.getElementById('total-price');
+    const itemCount = document.getElementById('item-count');
     const dateInput = document.getElementById('date');
     const productInput = document.getElementById('product');
+    const video = document.getElementById('scanner-video');
     let items = JSON.parse(localStorage.getItem('shoppingList')) || [];
     let exportCounter = parseInt(localStorage.getItem('exportCounter')) || 0;
+    let stream = null;
 
     // Definir data atual
     const today = new Date().toISOString().split('T')[0];
@@ -23,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Renderizar lista e calcular total
     function renderList() {
-        console.log('Renderizando lista:', items); // Log para depuração
+        console.log('Renderizando lista:', items);
         list.innerHTML = '';
         let total = 0;
         items.forEach((item, index) => {
@@ -41,45 +45,46 @@ document.addEventListener('DOMContentLoaded', () => {
             total += parseFloat(itemTotal);
         });
         totalPrice.textContent = `Total: R$${total.toFixed(2)}`;
+        itemCount.textContent = `Itens: ${items.length}`; // Exibir contagem de itens
         localStorage.setItem('shoppingList', JSON.stringify(items));
     }
 
     // Adicionar item
     form.addEventListener('submit', (e) => {
         e.preventDefault();
-        const product = document.getElementById('product').value;
+        const product = productInput.value;
         const quantity = parseInt(document.getElementById('quantity').value);
         const price = parseFloat(document.getElementById('price').value).toFixed(2);
         const supermarket = document.getElementById('supermarket').value;
         const date = document.getElementById('date').value;
         const item = { product, quantity, price, supermarket, date };
-        console.log('Adicionando item:', item); // Log para depuração
+        console.log('Adicionando item:', item);
         items.push(item);
         form.reset();
         document.getElementById('quantity').value = '1';
         document.getElementById('price').value = '0.00';
         document.getElementById('date').value = today;
         renderList();
-        productInput.focus(); // Retorna o foco ao campo de produto
+        productInput.focus();
     });
 
     // Editar item
     window.editItem = (index) => {
         const item = items[index];
-        document.getElementById('product').value = item.product;
+        productInput.value = item.product;
         document.getElementById('quantity').value = item.quantity;
         document.getElementById('price').value = item.price;
         document.getElementById('supermarket').value = item.supermarket;
         document.getElementById('date').value = item.date;
-        items.splice(index, 1); // Remove item para edição
+        items.splice(index, 1);
         renderList();
-        productInput.focus(); // Retorna o foco ao campo de produto
+        productInput.focus();
     };
 
     // Excluir item
     window.deleteItem = (index) => {
         items.splice(index, 1);
-        console.log('Item excluído:', index); // Log para depuração
+        console.log('Item excluído:', index);
         renderList();
     };
 
@@ -93,7 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
             items = [];
             localStorage.setItem('shoppingList', JSON.stringify(items));
             renderList();
-            console.log('Lista limpa'); // Log para depuração
+            console.log('Lista limpa');
         }
     });
 
@@ -118,7 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
         a.download = `Lista${exportCounter}.json`;
         a.click();
         URL.revokeObjectURL(url);
-        console.log('Lista exportada:', items); // Log para depuração
+        console.log('Lista exportada:', items);
     });
 
     // Importar lista
@@ -129,7 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
             reader.onload = (event) => {
                 try {
                     items = JSON.parse(event.target.result);
-                    console.log('Lista importada:', items); // Log para depuração
+                    console.log('Lista importada:', items);
                     renderList();
                 } catch (error) {
                     console.error('Erro ao importar arquivo:', error);
@@ -137,6 +142,69 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             };
             reader.readAsText(file);
+        }
+    });
+
+    // Escanear código de barras
+    scanBtn.addEventListener('click', async () => {
+        if ('BarcodeDetector' in window) {
+            // Usar Barcode Detection API
+            const barcodeDetector = new BarcodeDetector({ formats: ['ean_13', 'upc_a', 'qr_code', 'code_128'] });
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                video.srcObject = stream;
+                video.style.display = 'block';
+                video.play();
+
+                const scan = async () => {
+                    const canvas = document.getElementById('scanner-canvas');
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    const barcodes = await barcodeDetector.detect(canvas);
+                    if (barcodes.length > 0) {
+                        productInput.value = barcodes[0].rawValue;
+                        video.srcObject = null;
+                        stream.getTracks().forEach(track => track.stop());
+                        video.style.display = 'none';
+                        productInput.focus();
+                    } else {
+                        requestAnimationFrame(scan);
+                    }
+                };
+                requestAnimationFrame(scan);
+            } catch (error) {
+                console.error('Erro ao acessar a câmera:', error);
+                alert('Erro ao acessar a câmera. Verifique as permissões.');
+            }
+        } else {
+            // Fallback para ZXing
+            const codeReader = new ZXing.BrowserMultiFormatReader();
+            try {
+                const result = await codeReader.decodeFromVideoDevice(null, 'scanner-video', (result, err) => {
+                    if (result) {
+                        productInput.value = result.getText();
+                        codeReader.reset();
+                        video.style.display = 'none';
+                        productInput.focus();
+                    }
+                    if (err) {
+                        console.error('Erro ao escanear com ZXing:', err);
+                    }
+                });
+                video.style.display = 'block';
+            } catch (error) {
+                console.error('Erro ao acessar a câmera com ZXing:', error);
+                alert('Erro ao acessar a câmera com ZXing. Verifique as permissões.');
+            }
+        }
+    });
+
+    // Parar a câmera ao fechar a página
+    window.addEventListener('beforeunload', () => {
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
         }
     });
 
