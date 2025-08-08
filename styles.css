@@ -45,6 +45,13 @@ h1 {
     animation: fadeIn 0.5s ease-in;
 }
 
+.input-group {
+    display: flex;
+    gap: 5px;
+    flex: 1;
+    min-width: 100px;
+}
+
 #item-form input {
     padding: 8px;
     border: 1px solid #ccc;
@@ -54,10 +61,10 @@ h1 {
 }
 
 #item-form input[type="number"] {
-    max-width: 150px; /* Limita largura do campo de quantidade e preço */
+    max-width: 150px;
 }
 
-#item-form button {
+#item-form button, #scan-btn {
     padding: 8px;
     background-color: #28a745;
     color: white;
@@ -67,7 +74,11 @@ h1 {
     transition: transform 0.2s;
 }
 
-#item-form button:hover {
+#scan-btn {
+    background-color: #17a2b8;
+}
+
+#item-form button:hover, #scan-btn:hover {
     transform: scale(1.05);
 }
 
@@ -76,6 +87,7 @@ h1 {
     gap: 10px;
     margin-bottom: 20px;
     align-items: center;
+    flex-wrap: wrap;
 }
 
 #export-btn, .import-btn, #clear-list-btn {
@@ -100,6 +112,18 @@ h1 {
     background-color: #c82333;
 }
 
+#total-price, #item-count {
+    font-weight: bold;
+    padding: 8px;
+    border-radius: 4px;
+    background-color: #e9ecef;
+}
+
+body.dark #total-price, body.dark #item-count {
+    background-color: #555;
+    color: #f4f4f4;
+}
+
 #shopping-list {
     list-style: none;
 }
@@ -122,7 +146,7 @@ body.dark .list-item {
 }
 
 .list-item button {
-    padding fivepx 10px;
+    padding: 5px 10px;
     margin-left: 5px;
     border: none;
     border-radius: 4px;
@@ -158,11 +182,15 @@ body.dark .list-item {
     #item-form {
         flex-direction: column;
     }
-    #item-form input, #item-form button {
+    #item-form input, #item-form button, #scan-btn {
         width: 100%;
+    }
+    .input-group {
+        flex-direction: column;
     }
     .list-controls {
         flex-direction: column;
         align-items: flex-start;
     }
 }
+
