@@ -13,7 +13,10 @@
         <h1><i class="fas fa-shopping-cart"></i> Lista de Compras</h1>
         <button id="theme-toggle"><i class="fas fa-moon"></i> Alternar Tema</button>
         <form id="item-form">
-            <input type="text" id="product" placeholder="Produto" required>
+            <div class="input-group">
+                <input type="text" id="product" placeholder="Produto" required>
+                <button type="button" id="scan-btn"><i class="fas fa-barcode"></i> Escanear</button>
+            </div>
             <input type="number" id="quantity" placeholder="Quantidade" min="1" value="1" required>
             <input type="number" id="price" placeholder="Preço" step="0.01" value="0.00" required>
             <input type="text" id="supermarket" placeholder="Supermercado" required>
@@ -26,13 +29,16 @@
             <input type="file" id="import-file" accept=".json" style="display: none;">
             <button id="clear-list-btn"><i class="fas fa-trash-alt"></i> Limpar Lista</button>
             <span id="total-price">Total: R$0.00</span>
+            <span id="item-count">Itens: 0</span>
         </div>
         <ul id="shopping-list"></ul>
+        <video id="scanner-video" style="display: none;"></video>
+        <canvas id="scanner-canvas" style="display: none;"></canvas>
     </div>
+    <script src="https://unpkg.com/@zxing/library@0.18.6/umd/index.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
-
 
 
 
