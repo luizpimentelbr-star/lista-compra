@@ -32,15 +32,17 @@
             <span id="item-count">Itens: 0</span>
         </div>
         <ul id="shopping-list"></ul>
-        <video id="scanner-video" style="display: none;"></video>
+        <div id="scanner-container" style="display: none;">
+            <video id="scanner-video"></video>
+            <div id="scanner-overlay"></div>
+            <button id="cancel-scan-btn"><i class="fas fa-times"></i> Cancelar</button>
+        </div>
         <canvas id="scanner-canvas" style="display: none;"></canvas>
     </div>
     <script src="https://unpkg.com/@zxing/library@0.18.6/umd/index.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
-
-
 
 
 
