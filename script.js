@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const video = document.getElementById('scanner-video');
     let items = JSON.parse(localStorage.getItem('shoppingList')) || [];
     let exportCounter = parseInt(localStorage.getItem('exportCounter')) || 0;
+    let productCache = JSON.parse(localStorage.getItem('productCache')) || {};
     let stream = null;
     let scanning = false;
 
@@ -148,6 +149,42 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Função para buscar nome do produto na Open Food Facts
+    async function fetchProductName(barcode) {
+        // Verificar cache primeiro
+        if (productCache[barcode]) {
+            console.log('Produto encontrado no cache:', productCache[barcode]);
+            return productCache[barcode];
+        }
+
+        // Verificar conectividade
+        if (!navigator.onLine) {
+            console.log('Offline: Nenhum acesso à API Open Food Facts.');
+            return null;
+        }
+
+        try {
+            const response = await fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`, {
+                headers: { 'User-Agent': 'ListaComprasApp/1.0' }
+            });
+            const data = await response.json();
+            if (data.status === 1 && data.product && data.product.product_name) {
+                const productName = data.product.product_name;
+                // Salvar no cache
+                productCache[barcode] = productName;
+                localStorage.setItem('productCache', JSON.stringify(productCache));
+                console.log('Produto encontrado na API:', productName);
+                return productName;
+            } else {
+                console.log('Produto não encontrado na API Open Food Facts.');
+                return null;
+            }
+        } catch (error) {
+            console.error('Erro ao buscar produto na API:', error);
+            return null;
+        }
+    }
+
     // Função para parar o escaneamento
     function stopScanning() {
         if (stream) {
@@ -184,8 +221,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     try {
                         const barcodes = await barcodeDetector.detect(canvas);
                         if (barcodes.length > 0) {
-                            productInput.value = barcodes[0].rawValue;
+                            const barcode = barcodes[0].rawValue;
+                            const productName = await fetchProductName(barcode);
+                            productInput.value = productName || barcode;
                             stopScanning();
+                            if (productName) {
+                                alert(`Produto encontrado: ${productName}`);
+                            } else if (navigator.onLine) {
+                                alert(`Produto não encontrado. Edite o campo para o nome do produto: ${barcode}`);
+                            } else {
+                                alert(`Sem internet. Edite o campo para o nome do produto ou use o último nome salvo: ${barcode}`);
+                            }
                         } else {
                             requestAnimationFrame(scan);
                         }
@@ -204,11 +250,20 @@ document.addEventListener('DOMContentLoaded', () => {
             // Fallback para ZXing
             const codeReader = new ZXing.BrowserMultiFormatReader();
             try {
-                codeReader.decodeFromVideoDevice(null, 'scanner-video', (result, err) => {
+                codeReader.decodeFromVideoDevice(null, 'scanner-video', async (result, err) => {
                     if (result && scanning) {
-                        productInput.value = result.getText();
+                        const barcode = result.getText();
+                        const productName = await fetchProductName(barcode);
+                        productInput.value = productName || barcode;
                         codeReader.reset();
                         stopScanning();
+                        if (productName) {
+                            alert(`Produto encontrado: ${productName}`);
+                        } else if (navigator.onLine) {
+                            alert(`Produto não encontrado. Edite o campo para o nome do produto: ${barcode}`);
+                        } else {
+                            alert(`Sem internet. Edite o campo para o nome do produto ou use o último nome salvo: ${barcode}`);
+                        }
                     }
                     if (err && scanning) {
                         console.error('Erro ao escanear com ZXing:', err);
