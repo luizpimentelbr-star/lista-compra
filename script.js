@@ -11,6 +11,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const itemCount = document.getElementById('item-count');
     const dateInput = document.getElementById('date');
     const productInput = document.getElementById('product');
+    const quantityInput = document.getElementById('quantity');
+    const unitInput = document.getElementById('unit');
     const scannerContainer = document.getElementById('scanner-container');
     const video = document.getElementById('scanner-video');
     let items = JSON.parse(localStorage.getItem('shoppingList')) || [];
@@ -35,11 +37,11 @@ document.addEventListener('DOMContentLoaded', () => {
         list.innerHTML = '';
         let total = 0;
         items.forEach((item, index) => {
-            const itemTotal = (parseFloat(item.price) * item.quantity).toFixed(2);
+            const itemTotal = (parseFloat(item.price) * parseFloat(item.quantity)).toFixed(2);
             const li = document.createElement('li');
             li.classList.add('list-item');
             li.innerHTML = `
-                <span><i class="fas fa-shopping-basket"></i> ${item.product} (${item.quantity}x) - R$${itemTotal} - ${item.supermarket} - ${item.date}</span>
+                <span><i class="fas fa-shopping-basket"></i> ${item.product} (${item.quantity} ${item.unit}) - R$${itemTotal} - ${item.supermarket} - ${item.date}</span>
                 <div>
                     <button class="edit-btn" onclick="editItem(${index})"><i class="fas fa-edit"></i> Editar</button>
                     <button class="delete-btn" onclick="deleteItem(${index})"><i class="fas fa-trash"></i> Excluir</button>
@@ -57,15 +59,21 @@ document.addEventListener('DOMContentLoaded', () => {
     form.addEventListener('submit', (e) => {
         e.preventDefault();
         const product = productInput.value;
-        const quantity = parseInt(document.getElementById('quantity').value);
+        const quantity = parseFloat(quantityInput.value);
+        const unit = unitInput.value;
         const price = parseFloat(document.getElementById('price').value).toFixed(2);
         const supermarket = document.getElementById('supermarket').value;
         const date = document.getElementById('date').value;
-        const item = { product, quantity, price, supermarket, date };
+        if (quantity <= 0) {
+            alert('A quantidade deve ser maior que zero.');
+            return;
+        }
+        const item = { product, quantity, unit, price, supermarket, date };
         console.log('Adicionando item:', item);
         items.push(item);
         form.reset();
-        document.getElementById('quantity').value = '1';
+        quantityInput.value = '1';
+        unitInput.value = 'un';
         document.getElementById('price').value = '0.00';
         document.getElementById('date').value = today;
         renderList();
@@ -76,7 +84,8 @@ document.addEventListener('DOMContentLoaded', () => {
     window.editItem = (index) => {
         const item = items[index];
         productInput.value = item.product;
-        document.getElementById('quantity').value = item.quantity;
+        quantityInput.value = item.quantity;
+        unitInput.value = item.unit || 'un';
         document.getElementById('price').value = item.price;
         document.getElementById('supermarket').value = item.supermarket;
         document.getElementById('date').value = item.date;
@@ -138,6 +147,8 @@ document.addEventListener('DOMContentLoaded', () => {
             reader.onload = (event) => {
                 try {
                     items = JSON.parse(event.target.result);
+                    // Garantir compatibilidade com listas antigas sem 'unit'
+                    items = items.map(item => ({ ...item, unit: item.unit || 'un' }));
                     console.log('Lista importada:', items);
                     renderList();
                 } catch (error) {
@@ -290,4 +301,3 @@ document.addEventListener('DOMContentLoaded', () => {
     // Inicializar lista
     renderList();
 });
-
