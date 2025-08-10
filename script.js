@@ -13,6 +13,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const productInput = document.getElementById('product');
     const quantityInput = document.getElementById('quantity');
     const unitInput = document.getElementById('unit');
+    const priceInput = document.getElementById('price');
+    const supermarketInput = document.getElementById('supermarket');
     const scannerContainer = document.getElementById('scanner-container');
     const video = document.getElementById('scanner-video');
     let items = JSON.parse(localStorage.getItem('shoppingList')) || [];
@@ -38,6 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let total = 0;
         items.forEach((item, index) => {
             const itemTotal = (parseFloat(item.price) * parseFloat(item.quantity)).toFixed(2);
+            console.log(`Calculando item ${index}: ${item.price} × ${item.quantity} = ${itemTotal}`);
             const li = document.createElement('li');
             li.classList.add('list-item');
             li.innerHTML = `
@@ -61,11 +64,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const product = productInput.value;
         const quantity = parseFloat(quantityInput.value);
         const unit = unitInput.value;
-        const price = parseFloat(document.getElementById('price').value).toFixed(2);
-        const supermarket = document.getElementById('supermarket').value;
-        const date = document.getElementById('date').value;
+        const price = parseFloat(priceInput.value).toFixed(2);
+        const supermarket = supermarketInput.value;
+        const date = dateInput.value;
         if (quantity <= 0) {
             alert('A quantidade deve ser maior que zero.');
+            return;
+        }
+        if (parseFloat(price) < 0) {
+            alert('O preço não pode ser negativo.');
             return;
         }
         const item = { product, quantity, unit, price, supermarket, date };
@@ -74,8 +81,8 @@ document.addEventListener('DOMContentLoaded', () => {
         form.reset();
         quantityInput.value = '1';
         unitInput.value = 'un';
-        document.getElementById('price').value = '0.00';
-        document.getElementById('date').value = today;
+        priceInput.value = '0.00';
+        dateInput.value = today;
         renderList();
         productInput.focus();
     });
@@ -84,11 +91,15 @@ document.addEventListener('DOMContentLoaded', () => {
     window.editItem = (index) => {
         const item = items[index];
         productInput.value = item.product;
+        productInput.select();
         quantityInput.value = item.quantity;
+        quantityInput.select();
         unitInput.value = item.unit || 'un';
-        document.getElementById('price').value = item.price;
-        document.getElementById('supermarket').value = item.supermarket;
-        document.getElementById('date').value = item.date;
+        priceInput.value = item.price;
+        priceInput.select();
+        supermarketInput.value = item.supermarket;
+        supermarketInput.select();
+        dateInput.value = item.date;
         items.splice(index, 1);
         renderList();
         productInput.focus();
