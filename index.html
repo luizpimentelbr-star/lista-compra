@@ -16,12 +16,19 @@
                 <input type="text" id="product" placeholder="Produto" required>
                 <button type="button" id="scan-btn"><i class="fas fa-barcode"></i> Escanear</button>
             </div>
-            <input type="number" id="quantity" placeholder="Quantidade" min="1" value="1" required>
-            <input type="number" id="price" placeholder="Preço" step="0.01" value="0.00" required>
+            <div class="input-group">
+                <input type="number" id="quantity" placeholder="Quantidade" min="0.01" step="0.01" value="1" required>
+                <select id="unit">
+                    <option value="un">un</option>
+                    <option value="kg">kg</option>
+                    <option value="g">g</option>
+                    <option value="l">l</option>
+                </select>
+            </div>
+            <input type="number" id="price" placeholder="Preço por unidade (ex.: R$/kg)" step="0.01" value="0.00" required>
             <input type="text" id="supermarket" placeholder="Supermercado" required>
             <input type="date" id="date" required>
             <button type="submit"><i class="fas fa-plus"></i> Adicionar</button>
-            <link rel="icon" href="icone.png">
         </form>
         <div class="list-controls">
             <button id="export-btn"><i class="fas fa-download"></i> Exportar Lista</button>
@@ -43,7 +50,3 @@
     <script src="script.js"></script>
 </body>
 </html>
-
-
-
-
