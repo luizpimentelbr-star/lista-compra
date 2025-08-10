@@ -49,7 +49,7 @@ h1 {
     display: flex;
     gap: 5px;
     flex: 1;
-    min-width: 100px;
+    min-width: 0;
 }
 
 #item-form input, #item-form select {
@@ -57,7 +57,7 @@ h1 {
     border: 1px solid #ccc;
     border-radius: 4px;
     flex: 1;
-    min-width: 100px;
+    min-width: 0;
 }
 
 #item-form input[type="number"] {
@@ -80,6 +80,7 @@ h1 {
 
 #scan-btn {
     background-color: #17a2b8;
+    flex: 0 0 auto;
 }
 
 #item-form button:hover, #scan-btn:hover {
@@ -233,14 +234,14 @@ body.dark .list-item {
     #item-form {
         flex-direction: column;
     }
-    #item-form input, #item-form select, #item-form button, #scan-btn {
+    #item-form input, #item-form select, #item-form button {
         width: 100%;
     }
     .input-group {
         flex-direction: column;
     }
-    .list-controls {
-        flex-direction: column;
-        align-items: flex-start;
+    #scan-btn {
+        width: auto;
+        align-self: flex-start;
     }
 }
