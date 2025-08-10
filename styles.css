@@ -52,7 +52,7 @@ h1 {
     min-width: 100px;
 }
 
-#item-form input {
+#item-form input, #item-form select {
     padding: 8px;
     border: 1px solid #ccc;
     border-radius: 4px;
@@ -62,6 +62,10 @@ h1 {
 
 #item-form input[type="number"] {
     max-width: 150px;
+}
+
+#item-form select#unit {
+    max-width: 80px;
 }
 
 #item-form button, #scan-btn {
@@ -229,7 +233,7 @@ body.dark .list-item {
     #item-form {
         flex-direction: column;
     }
-    #item-form input, #item-form button, #scan-btn {
+    #item-form input, #item-form select, #item-form button, #scan-btn {
         width: 100%;
     }
     .input-group {
@@ -240,5 +244,3 @@ body.dark .list-item {
         align-items: flex-start;
     }
 }
-
-
