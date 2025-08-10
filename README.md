@@ -1,7 +1,11 @@
-# lista-compra
+
 # Lista de Compras
 
 Um aplicativo web simples e responsivo para gerenciar listas de compras em supermercados, desenvolvido com HTML, CSS e JavaScript. O app permite adicionar, editar, excluir e limpar itens, com suporte a quantidades fracionadas (ex.: 0.45 kg), armazenamento local via `localStorage`, temas claro/escuro, exportação/importação de listas em formato JSON, escaneamento de códigos de barras, integração com a API Open Food Facts, e exibição da contagem de itens. É compatível com dispositivos móveis, hospedado no GitHub Pages, e funciona offline.
+
+Para acesso rápido, adicione à tela inicial do celular:
+- Chrome (Android): Menu > Adicionar à tela inicial.
+- Safari (iOS): Compartilhar > Adicionar à Tela Inicial.
 
 ## Funcionalidades
 
