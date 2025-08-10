@@ -11,12 +11,12 @@
 <body>
     <div class="container">
         <h1><i class="fas fa-shopping-cart"></i> Lista de Compras</h1>
-        <button id="theme-toggle"><i class="fas fa-moon"></i> Alternar Tema</button>
+        <div class="header-controls">
+            <button id="theme-toggle"><i class="fas fa-moon"></i> Alternar Tema</button>
+            <button id="scan-btn"><i class="fas fa-barcode"></i> Escanear</button>
+        </div>
         <form id="item-form">
-            <div class="input-group">
-                <input type="text" id="product" placeholder="Produto" required>
-                <button type="button" id="scan-btn"><i class="fas fa-barcode"></i> Escanear</button>
-            </div>
+            <input type="text" id="product" placeholder="Produto" required>
             <div class="input-group">
                 <input type="number" id="quantity" placeholder="Quantidade" min="0.01" step="0.01" value="1" required>
                 <select id="unit">
@@ -25,19 +25,23 @@
                     <option value="g">g</option>
                     <option value="l">l</option>
                 </select>
+                <input type="number" id="price" placeholder="Preço por unidade (ex.: R$/kg)" step="0.01" value="0.00" required>
             </div>
-            <input type="number" id="price" placeholder="Preço por unidade (ex.: R$/kg)" step="0.01" value="0.00" required>
             <input type="text" id="supermarket" placeholder="Supermercado" required>
             <input type="date" id="date" required>
             <button type="submit"><i class="fas fa-plus"></i> Adicionar</button>
         </form>
         <div class="list-controls">
-            <button id="export-btn"><i class="fas fa-download"></i> Exportar Lista</button>
-            <label for="import-file" class="import-btn"><i class="fas fa-upload"></i> Importar</label>
-            <input type="file" id="import-file" accept=".json" style="display: none;">
-            <button id="clear-list-btn"><i class="fas fa-trash-alt"></i> Limpar Lista</button>
-            <span id="total-price">Total: R$0.00</span>
-            <span id="item-count">Itens: 0</span>
+            <div class="button-group">
+                <button id="export-btn"><i class="fas fa-download"></i> Exportar Lista</button>
+                <label for="import-file" class="import-btn"><i class="fas fa-upload"></i> Importar</label>
+                <input type="file" id="import-file" accept=".json" style="display: none;">
+                <button id="clear-list-btn"><i class="fas fa-trash-alt"></i> Limpar Lista</button>
+            </div>
+            <div class="summary-group">
+                <span id="total-price">Total: R$0.00</span>
+                <span id="item-count">Itens: 0</span>
+            </div>
         </div>
         <ul id="shopping-list"></ul>
         <div id="scanner-container" style="display: none;">
@@ -51,4 +55,3 @@
     <script src="script.js"></script>
 </body>
 </html>
-
