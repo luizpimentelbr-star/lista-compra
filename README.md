@@ -31,19 +31,6 @@ Um aplicativo web simples e responsivo para gerenciar listas de compras em super
 - **VSCode**: Desenvolvimento e testes com a extensão Live Server.
 - **GitHub Pages**: Hospedagem do aplicativo.
 
-## Como Executar Localmente
-
-### Pré-requisitos
-- [Visual Studio Code (VSCode)](https://code.visualstudio.com/)
-- Extensão **Live Server** instalada no VSCode
-- [Git](https://git-scm.com/) para versionamento
-- Navegador web (Chrome ou Edge recomendado para escaneamento)
-
-### Passos
-1. **Clonar o Repositório**:
-   ```bash
-   git clone https://github.com/seu-usuario/lista-compras.git
-   cd lista-compras
 
 Desenvolvido com  por Luiz Pimentel, Auxiliado com todo mérito por GROK. Contato: luizpimentelbr@gmail.com  
 mailto: luizpimentelbr@gmail.com.
