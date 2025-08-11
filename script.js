@@ -2,9 +2,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('item-form');
     const list = document.getElementById('shopping-list');
     const themeToggle = document.getElementById('theme-toggle');
-    const saveListBtn = document.getElementById('save-list-btn');
-    const loadListSelect = document.getElementById('load-list-select');
-    const deleteListSelect = document.getElementById('delete-list-select');
+    const exportBtn = document.getElementById('export-btn');
+    const importFile = document.getElementById('import-file');
     const clearListBtn = document.getElementById('clear-list-btn');
     const scanBtn = document.getElementById('scan-btn');
     const cancelScanBtn = document.getElementById('cancel-scan-btn');
@@ -18,8 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const supermarketInput = document.getElementById('supermarket');
     const scannerContainer = document.getElementById('scanner-container');
     const video = document.getElementById('scanner-video');
-    let items = JSON.parse(localStorage.getItem('currentList')) || [];
-    let savedLists = JSON.parse(localStorage.getItem('savedLists')) || [];
+    let items = JSON.parse(localStorage.getItem('shoppingList')) || [];
     let exportCounter = parseInt(localStorage.getItem('exportCounter')) || 0;
     let productCache = JSON.parse(localStorage.getItem('productCache')) || {};
     let stream = null;
@@ -33,23 +31,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (localStorage.getItem('theme') === 'dark') {
         document.body.classList.add('dark');
         themeToggle.innerHTML = '<i class="fas fa-sun"></i> Alternar Tema';
-    }
-
-    // Atualizar selects de carregar e excluir listas salvas
-    function updateListSelects() {
-        loadListSelect.innerHTML = '<option value="">Carregar</option>';
-        deleteListSelect.innerHTML = '<option value="">Excluir</option>';
-        savedLists.forEach(list => {
-            const optionLoad = document.createElement('option');
-            optionLoad.value = list.name;
-            optionLoad.textContent = list.name;
-            loadListSelect.appendChild(optionLoad);
-
-            const optionDelete = document.createElement('option');
-            optionDelete.value = list.name;
-            optionDelete.textContent = list.name;
-            deleteListSelect.appendChild(optionDelete);
-        });
     }
 
     // Renderizar lista e calcular total
@@ -74,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         totalPrice.textContent = `Total: R$${total.toFixed(2)}`;
         itemCount.textContent = `Itens: ${items.length}`;
-        localStorage.setItem('currentList', JSON.stringify(items));
+        localStorage.setItem('shoppingList', JSON.stringify(items));
     }
 
     // Adicionar item
@@ -88,6 +69,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const date = dateInput.value;
         if (quantity <= 0) {
             alert('A quantidade deve ser maior que zero.');
+            return;
+        }
+        if (parseFloat(price) < 0) {
+            alert('O preço não pode ser negativo.');
             return;
         }
         const item = { product, quantity, unit, price, supermarket, date };
@@ -127,70 +112,17 @@ document.addEventListener('DOMContentLoaded', () => {
         renderList();
     };
 
-    // Limpar lista atual
+    // Limpar toda a lista
     clearListBtn.addEventListener('click', () => {
         if (items.length === 0) {
             alert('A lista já está vazia!');
             return;
         }
-        if (confirm('Tem certeza que deseja limpar a lista atual? Esta ação não pode ser desfeita.')) {
+        if (confirm('Tem certeza que deseja limpar toda a lista? Esta ação não pode ser desfeita.')) {
             items = [];
-            localStorage.setItem('currentList', JSON.stringify(items));
+            localStorage.setItem('shoppingList', JSON.stringify(items));
             renderList();
-            console.log('Lista atual limpa!');
-        }
-    });
-
-    // Salvar lista atual
-    saveListBtn.addEventListener('click', () => {
-        const name = prompt('Digite o nome para salvar esta lista (ex.: Lista Semanal):');
-        if (name) {
-            const existingIndex = savedLists.findIndex(list => list.name === name);
-            if (existingIndex > -1) {
-                if (confirm('Uma lista com esse nome já existe. Sobrescrever?')) {
-                    savedLists[existingIndex].items = [...items];
-                } else {
-                    return;
-                }
-            } else {
-                savedLists.push({ name, items: [...items] });
-            }
-            localStorage.setItem('savedLists', JSON.stringify(savedLists));
-            updateListSelects();
-            alert('Lista salva com sucesso!');
-        }
-    });
-
-    // Carregar lista salva
-    loadListSelect.addEventListener('change', (e) => {
-        const name = e.target.value;
-        if (name) {
-            const savedList = savedLists.find(list => list.name === name);
-            if (savedList) {
-                items = [...savedList.items];
-                renderList();
-                alert(`Lista "${name}" carregada com sucesso!`);
-            }
-            e.target.value = '';
-        }
-    });
-
-    // Excluir lista salva
-    deleteListBtn.addEventListener('click', () => {
-        const name = deleteListSelect.value;
-        if (name) {
-            const index = savedLists.findIndex(list => list.name === name);
-            if (index > -1) {
-                savedLists.splice(index, 1);
-                localStorage.setItem('savedLists', JSON.stringify(savedLists));
-                updateListSelects();
-                alert('Lista excluída com sucesso!');
-            } else {
-                alert('Lista não encontrada.');
-            }
-            deleteListSelect.value = '';
-        } else {
-            alert('Selecione uma lista para excluir.');
+            console.log('Lista limpa');
         }
     });
 
@@ -201,6 +133,42 @@ document.addEventListener('DOMContentLoaded', () => {
         themeToggle.innerHTML = document.body.classList.contains('dark') 
             ? '<i class="fas fa-sun"></i> Alternar Tema' 
             : '<i class="fas fa-moon"></i> Alternar Tema';
+    });
+
+    // Exportar lista com numeração sequencial
+    exportBtn.addEventListener('click', () => {
+        exportCounter++;
+        localStorage.setItem('exportCounter', exportCounter);
+        const dataStr = JSON.stringify(items);
+        const blob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Lista${exportCounter}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        console.log('Lista exportada:', items);
+    });
+
+    // Importar lista
+    importFile.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    items = JSON.parse(event.target.result);
+                    // Garantir compatibilidade com listas antigas sem 'unit'
+                    items = items.map(item => ({ ...item, unit: item.unit || 'un' }));
+                    console.log('Lista importada:', items);
+                    renderList();
+                } catch (error) {
+                    console.error('Erro ao importar arquivo:', error);
+                    alert('Erro ao importar arquivo. Verifique o formato.');
+                }
+            };
+            reader.readAsText(file);
+        }
     });
 
     // Função para buscar nome do produto na Open Food Facts
@@ -342,6 +310,5 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Inicializar lista
-    updateListSelects();
     renderList();
 });
