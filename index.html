@@ -6,8 +6,6 @@
     <title>Lista de Compras</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="icon" href="icone.png">
-    <link rel="apple-touch-icon" href="icon.png">
 </head>
 <body>
     <div class="container">
@@ -38,6 +36,11 @@
                 <label for="import-file" class="import-btn"><i class="fas fa-upload"></i> Importar</label>
                 <input type="file" id="import-file" accept=".json" style="display: none;">
                 <button id="clear-list-btn"><i class="fas fa-trash-alt"></i> Limpar Lista</button>
+                <button id="save-list-btn"><i class="fas fa-save"></i> Salvar Lista</button>
+                <select id="load-list-select">
+                    <option value="">Carregar Lista</option>
+                </select>
+                <button id="delete-list-btn"><i class="fas fa-trash"></i> Excluir Lista</button>
             </div>
             <div class="summary-group">
                 <span id="total-price">Total: R$0.00</span>
@@ -56,4 +59,3 @@
     <script src="script.js"></script>
 </body>
 </html>
-
