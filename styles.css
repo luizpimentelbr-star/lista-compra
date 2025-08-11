@@ -107,8 +107,9 @@ h1 {
 
 .button-group {
     display: flex;
-    gap: 10px;
+    gap: 5px;
     flex-wrap: wrap;
+    justify-content: center;
 }
 
 .button-group button, .button-group select {
@@ -119,6 +120,7 @@ h1 {
     border-radius: 4px;
     cursor: pointer;
     transition: transform 0.2s;
+    font-size: 0.9em;
 }
 
 .button-group select {
@@ -126,25 +128,26 @@ h1 {
     color: white;
 }
 
-#clear-list-btn, #delete-list-btn {
-    background-color: #dc3545;
-}
-
 #save-list-btn {
     background-color: #28a745;
+}
+
+#delete-list-btn, #clear-list-btn {
+    background-color: #dc3545;
 }
 
 .button-group button:hover {
     transform: scale(1.05);
 }
 
-#clear-list-btn:hover, #delete-list-btn:hover {
+#delete-list-btn:hover, #clear-list-btn:hover {
     background-color: #c82333;
 }
 
 .summary-group {
     display: flex;
     gap: 10px;
+    justify-content: center;
     flex-wrap: wrap;
 }
 
@@ -272,7 +275,7 @@ body.dark .list-item {
     }
     .input-group {
         flex-direction: row;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
     }
     #item-form input, #item-form select, #item-form button {
         width: auto;
@@ -280,9 +283,10 @@ body.dark .list-item {
     }
     .button-group {
         flex-direction: row;
-        justify-content: space-between;
+        justify-content: center;
+        gap: 5px;
     }
     .summary-group {
-        justify-content: space-between;
+        justify-content: center;
     }
 }
