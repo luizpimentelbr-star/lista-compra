@@ -5,6 +5,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const exportBtn = document.getElementById('export-btn');
     const importFile = document.getElementById('import-file');
     const clearListBtn = document.getElementById('clear-list-btn');
+    const saveListBtn = document.getElementById('save-list-btn');
+    const loadListSelect = document.getElementById('load-list-select');
+    const deleteListBtn = document.getElementById('delete-list-btn');
     const scanBtn = document.getElementById('scan-btn');
     const cancelScanBtn = document.getElementById('cancel-scan-btn');
     const totalPrice = document.getElementById('total-price');
@@ -17,7 +20,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const supermarketInput = document.getElementById('supermarket');
     const scannerContainer = document.getElementById('scanner-container');
     const video = document.getElementById('scanner-video');
-    let items = JSON.parse(localStorage.getItem('shoppingList')) || [];
+    let items = JSON.parse(localStorage.getItem('currentList')) || [];
+    let savedLists = JSON.parse(localStorage.getItem('savedLists')) || [];
     let exportCounter = parseInt(localStorage.getItem('exportCounter')) || 0;
     let productCache = JSON.parse(localStorage.getItem('productCache')) || {};
     let stream = null;
@@ -31,6 +35,17 @@ document.addEventListener('DOMContentLoaded', () => {
     if (localStorage.getItem('theme') === 'dark') {
         document.body.classList.add('dark');
         themeToggle.innerHTML = '<i class="fas fa-sun"></i> Alternar Tema';
+    }
+
+    // Atualizar select de listas salvas
+    function updateLoadListSelect() {
+        loadListSelect.innerHTML = '<option value="">Carregar Lista</option>';
+        savedLists.forEach(list => {
+            const option = document.createElement('option');
+            option.value = list.name;
+            option.textContent = list.name;
+            loadListSelect.appendChild(option);
+        });
     }
 
     // Renderizar lista e calcular total
@@ -55,7 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         totalPrice.textContent = `Total: R$${total.toFixed(2)}`;
         itemCount.textContent = `Itens: ${items.length}`;
-        localStorage.setItem('shoppingList', JSON.stringify(items));
+        localStorage.setItem('currentList', JSON.stringify(items));
     }
 
     // Adicionar item
@@ -69,10 +84,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const date = dateInput.value;
         if (quantity <= 0) {
             alert('A quantidade deve ser maior que zero.');
-            return;
-        }
-        if (parseFloat(price) < 0) {
-            alert('O preço não pode ser negativo.');
             return;
         }
         const item = { product, quantity, unit, price, supermarket, date };
@@ -112,17 +123,53 @@ document.addEventListener('DOMContentLoaded', () => {
         renderList();
     };
 
-    // Limpar toda a lista
-    clearListBtn.addEventListener('click', () => {
-        if (items.length === 0) {
-            alert('A lista já está vazia!');
-            return;
+    // Salvar lista atual
+    saveListBtn.addEventListener('click', () => {
+        const name = prompt('Digite o nome para salvar esta lista (ex.: Lista Semanal):');
+        if (name) {
+            const existingIndex = savedLists.findIndex(list => list.name === name);
+            if (existingIndex > -1) {
+                if (confirm('Uma lista com esse nome já existe. Sobrescrever?')) {
+                    savedLists[existingIndex].items = [...items];
+                } else {
+                    return;
+                }
+            } else {
+                savedLists.push({ name, items: [...items] });
+            }
+            localStorage.setItem('savedLists', JSON.stringify(savedLists));
+            updateLoadListSelect();
+            alert('Lista salva com sucesso!');
         }
-        if (confirm('Tem certeza que deseja limpar toda a lista? Esta ação não pode ser desfeita.')) {
-            items = [];
-            localStorage.setItem('shoppingList', JSON.stringify(items));
-            renderList();
-            console.log('Lista limpa');
+    });
+
+    // Carregar lista salva
+    loadListSelect.addEventListener('change', (e) => {
+        const name = e.target.value;
+        if (name) {
+            const savedList = savedLists.find(list => list.name === name);
+            if (savedList) {
+                items = [...savedList.items];
+                renderList();
+                alert(`Lista "${name}" carregada com sucesso!`);
+            }
+            e.target.value = '';
+        }
+    });
+
+    // Excluir lista salva
+    deleteListBtn.addEventListener('click', () => {
+        const name = prompt('Digite o nome da lista a excluir:');
+        if (name) {
+            const index = savedLists.findIndex(list => list.name === name);
+            if (index > -1) {
+                savedLists.splice(index, 1);
+                localStorage.setItem('savedLists', JSON.stringify(savedLists));
+                updateLoadListSelect();
+                alert('Lista excluída com sucesso!');
+            } else {
+                alert('Lista não encontrada.');
+            }
         }
     });
 
@@ -135,7 +182,7 @@ document.addEventListener('DOMContentLoaded', () => {
             : '<i class="fas fa-moon"></i> Alternar Tema';
     });
 
-    // Exportar lista com numeração sequencial
+    // Exportar lista atual como JSON
     exportBtn.addEventListener('click', () => {
         exportCounter++;
         localStorage.setItem('exportCounter', exportCounter);
@@ -148,6 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
         a.click();
         URL.revokeObjectURL(url);
         console.log('Lista exportada:', items);
+        alert('Lista exportada! Lembre-se de deletar arquivos antigos em "Downloads" para liberar espaço.');
     });
 
     // Importar lista
@@ -310,5 +358,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Inicializar lista
+    updateLoadListSelect();
     renderList();
 });
