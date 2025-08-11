@@ -2,12 +2,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('item-form');
     const list = document.getElementById('shopping-list');
     const themeToggle = document.getElementById('theme-toggle');
-    const exportBtn = document.getElementById('export-btn');
-    const importFile = document.getElementById('import-file');
-    const clearListBtn = document.getElementById('clear-list-btn');
     const saveListBtn = document.getElementById('save-list-btn');
     const loadListSelect = document.getElementById('load-list-select');
-    const deleteListBtn = document.getElementById('delete-list-btn');
+    const deleteListSelect = document.getElementById('delete-list-select');
+    const clearListBtn = document.getElementById('clear-list-btn');
     const scanBtn = document.getElementById('scan-btn');
     const cancelScanBtn = document.getElementById('cancel-scan-btn');
     const totalPrice = document.getElementById('total-price');
@@ -37,14 +35,20 @@ document.addEventListener('DOMContentLoaded', () => {
         themeToggle.innerHTML = '<i class="fas fa-sun"></i> Alternar Tema';
     }
 
-    // Atualizar select de listas salvas
-    function updateLoadListSelect() {
-        loadListSelect.innerHTML = '<option value="">Carregar Lista</option>';
+    // Atualizar selects de carregar e excluir listas salvas
+    function updateListSelects() {
+        loadListSelect.innerHTML = '<option value="">Carregar</option>';
+        deleteListSelect.innerHTML = '<option value="">Excluir</option>';
         savedLists.forEach(list => {
-            const option = document.createElement('option');
-            option.value = list.name;
-            option.textContent = list.name;
-            loadListSelect.appendChild(option);
+            const optionLoad = document.createElement('option');
+            optionLoad.value = list.name;
+            optionLoad.textContent = list.name;
+            loadListSelect.appendChild(optionLoad);
+
+            const optionDelete = document.createElement('option');
+            optionDelete.value = list.name;
+            optionDelete.textContent = list.name;
+            deleteListSelect.appendChild(optionDelete);
         });
     }
 
@@ -123,6 +127,20 @@ document.addEventListener('DOMContentLoaded', () => {
         renderList();
     };
 
+    // Limpar lista atual
+    clearListBtn.addEventListener('click', () => {
+        if (items.length === 0) {
+            alert('A lista já está vazia!');
+            return;
+        }
+        if (confirm('Tem certeza que deseja limpar a lista atual? Esta ação não pode ser desfeita.')) {
+            items = [];
+            localStorage.setItem('currentList', JSON.stringify(items));
+            renderList();
+            console.log('Lista atual limpa!');
+        }
+    });
+
     // Salvar lista atual
     saveListBtn.addEventListener('click', () => {
         const name = prompt('Digite o nome para salvar esta lista (ex.: Lista Semanal):');
@@ -138,7 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 savedLists.push({ name, items: [...items] });
             }
             localStorage.setItem('savedLists', JSON.stringify(savedLists));
-            updateLoadListSelect();
+            updateListSelects();
             alert('Lista salva com sucesso!');
         }
     });
@@ -159,17 +177,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Excluir lista salva
     deleteListBtn.addEventListener('click', () => {
-        const name = prompt('Digite o nome da lista a excluir:');
+        const name = deleteListSelect.value;
         if (name) {
             const index = savedLists.findIndex(list => list.name === name);
             if (index > -1) {
                 savedLists.splice(index, 1);
                 localStorage.setItem('savedLists', JSON.stringify(savedLists));
-                updateLoadListSelect();
+                updateListSelects();
                 alert('Lista excluída com sucesso!');
             } else {
                 alert('Lista não encontrada.');
             }
+            deleteListSelect.value = '';
+        } else {
+            alert('Selecione uma lista para excluir.');
         }
     });
 
@@ -180,43 +201,6 @@ document.addEventListener('DOMContentLoaded', () => {
         themeToggle.innerHTML = document.body.classList.contains('dark') 
             ? '<i class="fas fa-sun"></i> Alternar Tema' 
             : '<i class="fas fa-moon"></i> Alternar Tema';
-    });
-
-    // Exportar lista atual como JSON
-    exportBtn.addEventListener('click', () => {
-        exportCounter++;
-        localStorage.setItem('exportCounter', exportCounter);
-        const dataStr = JSON.stringify(items);
-        const blob = new Blob([dataStr], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `Lista${exportCounter}.json`;
-        a.click();
-        URL.revokeObjectURL(url);
-        console.log('Lista exportada:', items);
-        alert('Lista exportada! Lembre-se de deletar arquivos antigos em "Downloads" para liberar espaço.');
-    });
-
-    // Importar lista
-    importFile.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                try {
-                    items = JSON.parse(event.target.result);
-                    // Garantir compatibilidade com listas antigas sem 'unit'
-                    items = items.map(item => ({ ...item, unit: item.unit || 'un' }));
-                    console.log('Lista importada:', items);
-                    renderList();
-                } catch (error) {
-                    console.error('Erro ao importar arquivo:', error);
-                    alert('Erro ao importar arquivo. Verifique o formato.');
-                }
-            };
-            reader.readAsText(file);
-        }
     });
 
     // Função para buscar nome do produto na Open Food Facts
@@ -358,6 +342,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Inicializar lista
-    updateLoadListSelect();
+    updateListSelects();
     renderList();
 });
